@@ -1,0 +1,58 @@
+# Constants
+initial_customers = 1000
+churn_rate = 0.1
+baseline_revenue_per_customer = 100
+months = 24
+team_size = 20
+new_customers_per_salesperson = 5
+revenue_growth_per_account_manager = 0.20
+customers_per_account_manager = 25
+csat_improvement_per_support = 0.01
+churn_reduction_per_csat_point = 0.15
+
+# AI-enhanced system assumptions
+ai_bot_improvement_factor = 2
+ai_customers_per_month = new_customers_per_salesperson * ai_bot_improvement_factor
+ai_bots_managed_per_human = 5
+total_ai_bots = team_size * ai_bots_managed_per_human
+
+# Identification phase duration
+identification_phase_months = 3
+
+# Function to calculate revenue with the new strategy
+def calculate_revenue_with_strategy():
+    total_revenue = 0
+    current_customers = initial_customers
+    revenue_per_customer = baseline_revenue_per_customer
+
+    for month in range(1, months + 1):
+        if month <= identification_phase_months:
+            # All humans in sales during identification phase
+            new_customers = team_size * new_customers_per_salesperson
+            current_churn_rate = churn_rate
+        else:
+            # AI bots in sales with human oversight
+            humans_in_sales = total_ai_bots // ai_bots_managed_per_human
+            new_customers_from_ai = ai_customers_per_month * total_ai_bots
+            new_customers = new_customers_from_ai + humans_in_sales * new_customers_per_salesperson
+            
+            # Remaining humans in Account Management and Support
+            remaining_humans = team_size - humans_in_sales
+            account_team = remaining_humans // 2
+            support_team = remaining_humans - account_team
+
+            # Account Management and Support Adjustments
+            if month <= 6 + identification_phase_months:
+                revenue_per_customer *= (1 + revenue_growth_per_account_manager)
+            csat_increase = support_team * csat_improvement_per_support
+            current_churn_rate = max(churn_rate - (churn_rate * csat_increase * churn_reduction_per_csat_point), 0)
+
+        current_customers += new_customers
+        current_customers = int(current_customers * (1 - current_churn_rate))
+        monthly_revenue = current_customers * revenue_per_customer
+        total_revenue += monthly_revenue
+
+    return total_revenue
+
+# Calculating the revenue
+revenue = calculate_revenue_with_strategy()
